@@ -2,11 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:gravity="center_horizontal"
     android:orientation="vertical" >
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hello" />
+        android:text="@string/enterGdgtUser" />
+
+    <EditText
+        android:id="@+id/gdgtUser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Refresh" />
+
+    <TextView
+        android:id="@+id/gdgtData"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/gdgtData"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </LinearLayout>

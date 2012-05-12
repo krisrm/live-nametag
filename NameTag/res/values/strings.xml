@@ -3,5 +3,7 @@
 
     <string name="hello">Hello World, NameTagActivity!</string>
     <string name="app_name">NameTag</string>
+    <string name="enterGdgtUser">Enter GDGT Username</string>
+    <string name="gdgtData">No Data</string>
 
 </resources>
