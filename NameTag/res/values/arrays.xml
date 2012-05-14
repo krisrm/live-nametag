@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="display_stat">
+        <item>(cycle all stats)</item>
+        <item>RP</item>
+        <item>Followers</item>
+        <item>Following</item>
+        <item>Answers</item>
+        <item>Questions</item>
+        <item>Comments</item>
+        <item>Reviews</item>
+        
+    </string-array>
+
+</resources>

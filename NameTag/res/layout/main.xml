@@ -1,34 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_margin="5dp"
+         android:id="@+id/mainScroll">
+<LinearLayout 
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical" >
 
     <TextView
-        android:layout_width="fill_parent"
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/enterGdgtUser" />
+        android:layout_margin="5dp"
+        android:text="GDGT NameTag Control Panel"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <EditText
-        android:id="@+id/gdgtUser"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-        <requestFocus />
-    </EditText>
+        <EditText
+            android:id="@+id/gdgtUser"
+            android:hint="GDGT Username"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textNoSuggestions"
+            android:ems="10" />
 
-    <Button
-        android:id="@+id/refreshButton"
+        <Button
+            android:id="@+id/refreshButton"
+            android:layout_width="85dp"
+            android:layout_height="wrap_content"
+            android:text="Refresh" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="true" >
+
+        <CheckBox
+            android:id="@+id/autoRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Auto Refresh" />
+
+        <EditText
+            android:id="@+id/autoRefreshInterval"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.00"
+            android:ems="10"
+            android:hint="Interval"
+            android:inputType="number" 
+            android:text ="2"
+            >
+			
+            
+        </EditText>
+
+        <TextView
+            android:id="@+id/minutesLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:text="Minutes"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Refresh" />
+        android:layout_gravity="left"
+        android:text="Currently Displayed Statistic"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Spinner
+        android:id="@+id/showStatistic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/display_stat" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:text="Cycle Every"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/cycleInterval"
+            android:layout_width="53dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="15" />
+
+        <TextView
+            android:id="@+id/CycleLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seconds"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:text="Current User Statistics"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
         android:id="@+id/gdgtData"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="clip_horizontal"
         android:text="@string/gdgtData"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </LinearLayout>
+</ScrollView>
