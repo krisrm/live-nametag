@@ -5,5 +5,9 @@
     <string name="enterGdgtUser">Enter GDGT Username</string>
     <string name="gdgtData">(please refresh)</string>
     <string name="autoRefresh">Automatic Refresh</string>
-
+	<string name="alert_dialog_no_bt">Cannot use this application without bluetooth.</string>
+	<string name="alert_dialog_yes">Yes</string>
+	<string name="alert_dialog_no">No</string>
+	<string name="alert_dialog_warning_title">Warning</string>
+	<string name="alert_dialog_ok">Ok</string>
 </resources>
