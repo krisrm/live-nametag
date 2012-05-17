@@ -35,6 +35,8 @@ public class NameTagActivity extends Activity {
 	private static final int MIN_LENGTH_MS = 60*SEC_LENGTH_MS;
 	public static final String T = "NAMETAG";
 	protected static final int ERR_REFRESH = 0;
+	private static final int ERR_BT = 1;
+	
 	private Handler h = new Handler();
 	protected GDGTInfo currentInfo;
 	private EditText cycle;
@@ -43,8 +45,8 @@ public class NameTagActivity extends Activity {
 	private EditText gdgtUser;
 	private CheckBox autoRefresh;
 	private ScrollView mainScrollView;
+	
 	BluetoothAdapter mBluetoothAdapter;
-	TextView myLabel;
 	BluetoothDevice mmDevice;
 	BluetoothSocket mmSocket;
 	OutputStream mmOutputStream;
@@ -135,10 +137,8 @@ public class NameTagActivity extends Activity {
 		try {
 			openBT();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		beginListenForData();
 
 		refreshButton.setOnClickListener(new Button.OnClickListener() {
 			public void onClick(View v) {
@@ -213,6 +213,9 @@ public class NameTagActivity extends Activity {
 		case ERR_REFRESH:
 			dialog = errorDialog("Could not refresh the stats for the given user!");
 			break;
+		case ERR_BT:
+			dialog = errorDialog("Bluetooth failed in an unexpected way!");
+			break;
 		}
 		return dialog;
 	}
@@ -245,7 +248,7 @@ public class NameTagActivity extends Activity {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(mBluetoothAdapter == null)
         {
-            myLabel.setText("No bluetooth adapter available");
+        	showDialog(ERR_BT);
         }
 
         if(!mBluetoothAdapter.isEnabled())
@@ -259,7 +262,8 @@ public class NameTagActivity extends Activity {
         {
             for(BluetoothDevice device : pairedDevices)
             {
-                if(device.getName().equals("FireFly-108B")) 
+            	Log.d(T,device.getName());
+                if(device.getName().equals("X10")) 
                 {
                     mmDevice = device;
                     break;
@@ -270,81 +274,86 @@ public class NameTagActivity extends Activity {
 	
 	void openBT() throws IOException
     {
+		if (mmDevice == null){
+			showDialog(ERR_BT);
+			return;
+		}
         UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"); //Standard //SerialPortService ID
         mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);        
         mmSocket.connect();
         mmOutputStream = mmSocket.getOutputStream();
         mmInputStream = mmSocket.getInputStream();
 
-        beginListenForData();
+//        beginListenForData();
 
-        myLabel.setText("Bluetooth Opened");
     }
 
-    void beginListenForData()
-    {
-        final Handler handler = new Handler(); 
-        final byte delimiter = 10; //This is the ASCII code for a newline character
-
-        stopWorker = false;
-        readBufferPosition = 0;
-        readBuffer = new byte[1024];
-        workerThread = new Thread(new Runnable()
-        {
-            public void run()
-            {                
-               while(!Thread.currentThread().isInterrupted() && !stopWorker)
-               {
-                    try 
-                    {
-                        int bytesAvailable = mmInputStream.available();                        
-                        if(bytesAvailable > 0)
-                        {
-                            byte[] packetBytes = new byte[bytesAvailable];
-                            mmInputStream.read(packetBytes);
-                            for(int i=0;i<bytesAvailable;i++)
-                            {
-                                byte b = packetBytes[i];
-                                if(b == delimiter)
-                                {
-                                    byte[] encodedBytes = new byte[readBufferPosition];
-                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    final String data = new String(encodedBytes, "US-ASCII");
-                                    readBufferPosition = 0;
-
-                                    handler.post(new Runnable()
-                                    {
-                                        public void run()
-                                        {
-                                            myLabel.setText(data);
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    readBuffer[readBufferPosition++] = b;
-                                }
-                            }
-                        }
-                    } 
-                    catch (IOException ex) 
-                    {
-                        stopWorker = true;
-                    }
-               }
-            }
-        });
-
-        workerThread.start();
-    }
+//    void beginListenForData()
+//    {
+//        final Handler handler = new Handler(); 
+//        final byte delimiter = 10; //This is the ASCII code for a newline character
+//
+//        stopWorker = false;
+//        readBufferPosition = 0;
+//        readBuffer = new byte[1024];
+//        workerThread = new Thread(new Runnable()
+//        {
+//            public void run()
+//            {                
+//               while(!Thread.currentThread().isInterrupted() && !stopWorker)
+//               {
+//                    try 
+//                    {
+//                        int bytesAvailable = mmInputStream.available();                        
+//                        if(bytesAvailable > 0)
+//                        {
+//                            byte[] packetBytes = new byte[bytesAvailable];
+//                            mmInputStream.read(packetBytes);
+//                            for(int i=0;i<bytesAvailable;i++)
+//                            {
+//                                byte b = packetBytes[i];
+//                                if(b == delimiter)
+//                                {
+//                                    byte[] encodedBytes = new byte[readBufferPosition];
+//                                    System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
+//                                    final String data = new String(encodedBytes, "US-ASCII");
+//                                    readBufferPosition = 0;
+//
+//                                    handler.post(new Runnable()
+//                                    {
+//                                        public void run()
+//                                        {
+//                                            myLabel.setText(data);
+//                                        }
+//                                    });
+//                                }
+//                                else
+//                                {
+//                                    readBuffer[readBufferPosition++] = b;
+//                                }
+//                            }
+//                        }
+//                    } 
+//                    catch (IOException ex) 
+//                    {
+//                        stopWorker = true;
+//                    }
+//               }
+//            }
+//        });
+//
+//        workerThread.start();
+//    }
 
     void sendData() throws IOException
     {
+    	if (currentInfo == null){
+    		return;
+    	}
         String msg = currentInfo.toString();
         msg += "\n";
         mmOutputStream.write(msg.getBytes());
         //mmOutputStream.write('A');
-        myLabel.setText("Data Sent");
     }
 
     void closeBT() throws IOException
@@ -353,6 +362,12 @@ public class NameTagActivity extends Activity {
         mmOutputStream.close();
         mmInputStream.close();
         mmSocket.close();
-        myLabel.setText("Bluetooth Closed");
     }
+
+	@Override
+	public boolean isFinishing() {
+		
+		
+		return super.isFinishing();
+	}
 }
