@@ -91,5 +91,63 @@ public class GDGTInfo {
 		
 		return r;
 	}
+	
+	/*
+	 * Formats a string for the Arduino Display. 
+	 * 0 = clearScreen
+	 * 1 = name
+	 * 2 = RP
+	 * 3 = followers
+	 * 4 = following
+	 */
+	public String toLcdString(int display){
+		String output = new String();
+		if (display == 0){
+			output = "                                ";
+		}
+		if (display == 1){
+			int len = 27 - name.length();
+			output.concat("User:");
+			for (; len > 0; len--){
+				output.concat(" ");
+			}
+			output.concat(name);
+		}
+		if (display == 2){
+			String RPstring = Integer.toString(RP);
+			int len = 29 - RPstring.length();
+			output.concat("RP:");
+			for (; len > 0; len--){
+				output.concat(" ");
+			}
+			output.concat(RPstring);
+		}
+		if (display == 3){
+			String FollowersString = Integer.toString(followers);
+			int len = 22 - FollowersString.length();
+			output.concat("Followers:");
+			for (; len > 0; len--){
+				output.concat(" ");
+			}
+			output.concat(FollowersString);
+		}
+		if (display == 4){
+			String FollowingString = Integer.toString(following);
+			int len = 22 - FollowingString.length();
+			output.concat("Following:");
+			for (; len > 0; len--){
+				output.concat(" ");
+			}
+			output.concat(FollowingString);
+		}
+		
+		if (output.length() != 32){
+			Log.e(T, "Travis probably sucks at math");
+		}
+		
+		return output;
+		
+	}
+	
 
 }

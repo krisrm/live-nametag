@@ -160,7 +160,7 @@ public class NameTagActivity extends Activity {
 	}
 	
 	protected void btConnected() {
-		bt.write("Hello, Android!");
+		bt.write(currentInfo.toLcdString(1));
 		cycleValues();
 	}
 
