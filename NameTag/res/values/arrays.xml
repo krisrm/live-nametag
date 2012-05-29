@@ -3,13 +3,14 @@
 
     <string-array name="display_stat">
         <item>(cycle all stats)</item>
+        <item>Name</item>
         <item>RP</item>
         <item>Followers</item>
         <item>Following</item>
-        <item>Answers</item>
-        <item>Questions</item>
-        <item>Comments</item>
-        <item>Reviews</item>
+<!--         <item>Answers</item> -->
+<!--         <item>Questions</item> -->
+<!--         <item>Comments</item> -->
+<!--         <item>Reviews</item> -->
         
     </string-array>
 
