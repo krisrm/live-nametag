@@ -102,14 +102,11 @@ public class GDGTInfo {
 	 */
 	public String toLcdString(int display){
 		String output = new String();
-		if (display == 0){
-			output = "                                ";
-		}
 		
 		if (name == null || username == null)
 			return "";
 		
-		if (display == 1){
+		if (display == 0){
 			int len = 27 - name.length();
 			output += "User:";
 			for (; len > 0; len--){
@@ -117,7 +114,7 @@ public class GDGTInfo {
 			}
 			output += name;
 		}
-		if (display == 2){
+		if (display == 1){
 			String RPstring = Integer.toString(RP);
 			int len = 29 - RPstring.length();
 			output += "RP:";
@@ -126,7 +123,7 @@ public class GDGTInfo {
 			}
 			output += RPstring;
 		}
-		if (display == 3){
+		if (display == 2){
 			String FollowersString = Integer.toString(followers);
 			int len = 22 - FollowersString.length();
 			output += "Followers:";
@@ -135,7 +132,7 @@ public class GDGTInfo {
 			}
 			output += FollowersString;
 		}
-		if (display == 4){
+		if (display == 3){
 			String FollowingString = Integer.toString(following);
 			int len = 22 - FollowingString.length();
 			output += "Following:";
@@ -145,7 +142,6 @@ public class GDGTInfo {
 			output += FollowingString;
 		}
 		
-		Log.d(T,"'"+output+"'");
 		if (output.length() != 32){
 			Log.e(T, "Travis probably sucks at math");
 		}

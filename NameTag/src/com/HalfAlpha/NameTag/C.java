@@ -11,6 +11,7 @@ public class C {
 	public static final int ERR_REFRESH = 0;
 	public static final int ERR_BT = 1;
 	
+	public static final int MAX_DISPLAY_CYCLE = 3;
 	
 	public static final boolean D = true;
 

@@ -1,15 +1,12 @@
 package com.HalfAlpha.NameTag;
 
-import java.io.IOException;
 import java.util.Set;
-import java.util.UUID;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,50 +16,54 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class NameTagActivity extends Activity {
 
 	private Handler h = new Handler(new Callback() {
-		
+
 		@Override
 		public boolean handleMessage(Message msg) {
 			Log.v(C.T, msg.toString());
-			switch (msg.what){
+			switch (msg.what) {
 			case C.MESSAGE_STATE_CHANGE:
-                switch (msg.arg1) {
-                case BluetoothSerialService.STATE_CONNECTED:
-                	Log.d(C.T, "Connected");
-                    break;
-                    
-                case BluetoothSerialService.STATE_CONNECTING:
-                	Log.d(C.T, "Connecting");
-                   
-                    break;
-                    
-                case BluetoothSerialService.STATE_LISTEN:
-                case BluetoothSerialService.STATE_NONE:
-                	Log.d(C.T, "Listen/None");
+				switch (msg.arg1) {
+				case BluetoothSerialService.STATE_CONNECTED:
+					Log.d(C.T, "Connected");
+					break;
 
-                    break;
-                }
-                break;
+				case BluetoothSerialService.STATE_CONNECTING:
+					Log.d(C.T, "Connecting");
+
+					break;
+
+				case BluetoothSerialService.STATE_LISTEN:
+				case BluetoothSerialService.STATE_NONE:
+					Log.d(C.T, "Listen/None");
+
+					break;
+				}
+				break;
 			case C.MESSAGE_DEVICE_NAME:
 				Log.d(C.T, "Got Name");
 				btConnected();
 				break;
 			case C.MESSAGE_TOAST:
-				Toast.makeText(NameTagActivity.this, msg.getData().getString(C.TOAST), Toast.LENGTH_LONG);
+				Toast.makeText(NameTagActivity.this,
+						msg.getData().getString(C.TOAST), Toast.LENGTH_LONG);
 				Log.d(C.T, msg.getData().getString(C.TOAST));
 				break;
-			
+
 			}
 			return false;
 		}
@@ -75,6 +76,9 @@ public class NameTagActivity extends Activity {
 	private CheckBox autoRefresh;
 	private ScrollView mainScrollView;
 	private BluetoothSerialService bt;
+	private int currentDisplayed = 0;
+	private String currentOutput = "";
+	private Spinner currentDisplaySpinner;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -88,15 +92,17 @@ public class NameTagActivity extends Activity {
 		autoRefreshInterval = (EditText) findViewById(R.id.autoRefreshInterval);
 		cycle = (EditText) findViewById(R.id.cycleInterval);
 		mainScrollView = (ScrollView) findViewById(R.id.mainScroll);
+		currentDisplaySpinner = (Spinner) findViewById(R.id.showStatistic);
 
 		bt = new BluetoothSerialService(this, h);
-		
+
 		setupBT();
-		
-		
+
 		refreshButton.setOnClickListener(new Button.OnClickListener() {
 			public void onClick(View v) {
-
+				if (bt== null || bt.getState() != BluetoothSerialService.STATE_CONNECTED){
+					setupBT();
+				}
 				refreshData.run();
 			}
 		});
@@ -104,11 +110,13 @@ public class NameTagActivity extends Activity {
 
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {}
+					int count) {
+			}
 
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {}
+					int after) {
+			}
 
 			@Override
 			public void afterTextChanged(Editable s) {
@@ -116,6 +124,24 @@ public class NameTagActivity extends Activity {
 				cycleValues();
 			}
 		});
+		currentDisplaySpinner
+				.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+					@Override
+					public void onItemSelected(AdapterView<?> arg0, View arg1,
+							int selected, long arg3) {
+						if (selected != 0) {
+							currentDisplayed = selected - 1;
+							displayValues.run();
+							h.removeCallbacks(displayValues);
+							cycleValues();
+						}
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {
+					}
+				});
 		autoRefreshInterval.setEnabled(autoRefresh.isChecked());
 		autoRefresh.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
@@ -130,36 +156,39 @@ public class NameTagActivity extends Activity {
 				}
 			}
 		});
-		
-	
+
 	}
 
 	private void setupBT() {
-		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
+				.getDefaultAdapter();
 		BluetoothDevice mBluetoothDevice = null;
 		if (!mBluetoothAdapter.isEnabled()) {
-		    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		    startActivityForResult(enableBtIntent, C.REQUEST_ENABLE_BT);
+			Intent enableBtIntent = new Intent(
+					BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			startActivityForResult(enableBtIntent, C.REQUEST_ENABLE_BT);
 		}
-		
-		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+
+		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter
+				.getBondedDevices();
 		if (pairedDevices.size() > 0) {
-		    for (BluetoothDevice device : pairedDevices) {
-		        if (C.DEVICE_NAME.equals(device.getName())){
-		        	mBluetoothDevice = device;
-		        }
-		    }
+			for (BluetoothDevice device : pairedDevices) {
+				if (C.DEVICE_NAME.equals(device.getName())) {
+					mBluetoothDevice = device;
+				}
+			}
 		}
-		if (mBluetoothDevice == null){
+		if (mBluetoothDevice == null) {
 			showDialog(C.ERR_BT);
 			return;
 		}
-		
+
 		bt.connect(mBluetoothDevice);
-		
+
 	}
-	
+
 	protected void btConnected() {
+		bt.write("*c");
 		cycleValues();
 	}
 
@@ -167,7 +196,20 @@ public class NameTagActivity extends Activity {
 
 		@Override
 		public void run() {
-			bt.write(currentInfo.toLcdString(1));
+
+			String tmpCurrentOutput = currentInfo.toLcdString(currentDisplayed);
+			if (!currentOutput.equals(tmpCurrentOutput)) {
+				currentOutput = tmpCurrentOutput;
+				bt.write(currentOutput);
+			}
+			
+			if (currentDisplaySpinner.getSelectedItemPosition() == 0) {
+				currentDisplayed++;
+				if (currentDisplayed > C.MAX_DISPLAY_CYCLE) {
+					currentDisplayed = 0;
+				}
+			}
+			
 			cycleValues();
 		}
 	};
@@ -265,18 +307,18 @@ public class NameTagActivity extends Activity {
 
 		return builder.create();
 	}
-	
-//	@Override
-//	protected void onResume() {
-//		if (bt != null)
-//			bt.start();
-//		super.onResume();
-//	}
-//
-//	@Override
-//	public boolean isFinishing() {
-//		if (bt != null)
-//			bt.stop();
-//		return super.isFinishing();
-//	}
+
+	// @Override
+	// protected void onResume() {
+	// if (bt != null)
+	// bt.start();
+	// super.onResume();
+	// }
+	//
+	// @Override
+	// public boolean isFinishing() {
+	// if (bt != null)
+	// bt.stop();
+	// return super.isFinishing();
+	// }
 }
