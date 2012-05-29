@@ -13,11 +13,15 @@
 #define DEBUG_ENABLED 1
 
 SoftwareSerial blueToothSerial(RxD,TxD);
+int countdown = 5000;
 int cursorPos;
- char recvChar;
+char recvChar;
+char* commandBuff="000";
+int commandPos = 0;
+boolean command;
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
-
+int brightness = 255;
 
 void setup() 
 { 
@@ -25,27 +29,74 @@ void setup()
   pinMode(RxD, INPUT);
   pinMode(TxD, OUTPUT);
   setupBlueToothConnection();
+  pinMode(5,OUTPUT);
   lcd.begin(ROW, COL);
+  delay(1000);
+  clearLCD();
 } 
 
 void loop() 
 { 
- 
-  
-    if(blueToothSerial.available()){//check if there's any data sent from the remote bluetooth shield
-      recvChar = blueToothSerial.read();
-      printLCD(recvChar);
-      if (cursorPos > MAX_CHAR){
+  if (countdown > 0){
+  countdown --;
+  return;
+  }
+  analogWrite(5, brightness);
+
+  if(blueToothSerial.available()){//check if there's any data sent from the remote bluetooth shield
+    recvChar = blueToothSerial.read();
+
+    if (command == true){
+      if (recvChar == 'c'){
         clearLCD();
-        printLCD(recvChar);
+        command = false;
+        return;
       }
-      Serial.print(recvChar);
+      if (recvChar == '*'){
+        printLCD('*');
+        command= false; 
+        return;
+      }
+      if (recvChar =='e'){
+        brightness = atoi(commandBuff);
+        Serial.println(commandBuff);
+        Serial.println(brightness);
+        commandPos = 0;
+        commandBuff = "000";
+        command= false; 
+        return;
+      }
+
+      if (commandPos < 3){
+        commandBuff[commandPos] = recvChar;     
+        commandPos++;
+      } 
+      else {
+        commandPos=0;
+      }
+      return;
     }
-    if(Serial.available()){//check if there's any data sent from the local serial terminal, you can add the other applications here
-      recvChar = Serial.read();
-      blueToothSerial.print(recvChar);
+
+    if (recvChar == '*'){
+      command = true;
+      return;
+    } 
+    else {
+      command = false;
+      printLCD(recvChar);
     }
-  
+
+    if (cursorPos > MAX_CHAR){
+      clearLCD();
+      printLCD(recvChar);
+    }
+    Serial.print(recvChar);
+  }
+  if(Serial.available()){//check if there's any data sent from the local serial terminal, you can add the other applications here
+    recvChar = Serial.read();
+    blueToothSerial.print(recvChar);
+  }
+
 } 
 
 void setupBlueToothConnection()
@@ -69,11 +120,15 @@ void printLCD(char c){
   lcd.print(c);
   cursorPos++;  
 }
+
 void clearLCD(){
   lcd.setCursor(0,0);
   lcd.print("                ");
   lcd.setCursor(0,1);
   lcd.print("                ");
   cursorPos=0;
+  lcd.setCursor(0,0);
 }
+
+
 
