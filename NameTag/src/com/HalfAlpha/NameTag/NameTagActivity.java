@@ -160,7 +160,6 @@ public class NameTagActivity extends Activity {
 	}
 	
 	protected void btConnected() {
-		bt.write(currentInfo.toLcdString(1));
 		cycleValues();
 	}
 
@@ -168,7 +167,7 @@ public class NameTagActivity extends Activity {
 
 		@Override
 		public void run() {
-			// call Arduino with data 
+			bt.write(currentInfo.toLcdString(1));
 			cycleValues();
 		}
 	};

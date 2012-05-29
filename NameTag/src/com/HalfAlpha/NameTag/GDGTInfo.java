@@ -105,6 +105,10 @@ public class GDGTInfo {
 		if (display == 0){
 			output = "                                ";
 		}
+		
+		if (name == null || username == null)
+			return "";
+		
 		if (display == 1){
 			int len = 27 - name.length();
 			output.concat("User:");
@@ -116,7 +120,7 @@ public class GDGTInfo {
 		if (display == 2){
 			String RPstring = Integer.toString(RP);
 			int len = 29 - RPstring.length();
-			output.concat("RP:");
+			output += "RP:";
 			for (; len > 0; len--){
 				output.concat(" ");
 			}
@@ -141,10 +145,10 @@ public class GDGTInfo {
 			output.concat(FollowingString);
 		}
 		
+		Log.d(T,"'"+output+"'");
 		if (output.length() != 32){
 			Log.e(T, "Travis probably sucks at math");
 		}
-		
 		return output;
 		
 	}
