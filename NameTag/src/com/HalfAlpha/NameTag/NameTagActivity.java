@@ -82,8 +82,6 @@ public class NameTagActivity extends Activity {
 	private String currentOutput = "";
 	private Spinner currentDisplaySpinner;
 	private SeekBar brightnessSeekbar;
-	private int currentBrightness = 200;
-	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -99,14 +97,15 @@ public class NameTagActivity extends Activity {
 		mainScrollView = (ScrollView) findViewById(R.id.mainScroll);
 		currentDisplaySpinner = (Spinner) findViewById(R.id.showStatistic);
 		brightnessSeekbar = (SeekBar) findViewById(R.id.brightnessBar);
-		
+
 		bt = new BluetoothSerialService(this, h);
 
 		setupBT();
 
 		refreshButton.setOnClickListener(new Button.OnClickListener() {
 			public void onClick(View v) {
-				if (bt== null || bt.getState() != BluetoothSerialService.STATE_CONNECTED){
+				if (bt == null
+						|| bt.getState() != BluetoothSerialService.STATE_CONNECTED) {
 					setupBT();
 				}
 				refreshData.run();
@@ -138,9 +137,8 @@ public class NameTagActivity extends Activity {
 							int selected, long arg3) {
 						if (selected != 0) {
 							currentDisplayed = selected - 1;
-							displayValues.run();
 							h.removeCallbacks(displayValues);
-							cycleValues();
+							displayValues.run();
 						}
 					}
 
@@ -148,32 +146,37 @@ public class NameTagActivity extends Activity {
 					public void onNothingSelected(AdapterView<?> arg0) {
 					}
 				});
-		brightnessSeekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+		brightnessSeekbar
+				.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
-			@Override
-			public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
-				// TODO Auto-generated method stub
-				//here is where we need the brightness to change
-				if (fromUser){
-					currentBrightness = progress + 100;
-				}
-			}
+					@Override
+					public void onProgressChanged(SeekBar seekbar,
+							int progress, boolean fromUser) {
+						if (fromUser) {
+							int currentBrightness = (int) Math.floor(progress*2 + 55);
+							
+							Log.d(C.T,"'"+currentBrightness);
+							if (currentBrightness < 100){								
+								bt.write("*0"+currentBrightness+"e");
+							} else {
+								bt.write("*"+currentBrightness+"e");
+							}
+						}
+					}
 
-			@Override
-			public void onStartTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
-				
-			}
+					@Override
+					public void onStartTrackingTouch(SeekBar arg0) {
+						// TODO Auto-generated method stub
 
-			@Override
-			public void onStopTrackingTouch(SeekBar arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			
-			
-		});
+					}
+
+					@Override
+					public void onStopTrackingTouch(SeekBar arg0) {
+						// TODO Auto-generated method stub
+
+					}
+
+				});
 		autoRefreshInterval.setEnabled(autoRefresh.isChecked());
 		autoRefresh.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
@@ -228,20 +231,22 @@ public class NameTagActivity extends Activity {
 
 		@Override
 		public void run() {
-
-			String tmpCurrentOutput = currentInfo.toLcdString(currentDisplayed);
-			if (!currentOutput.equals(tmpCurrentOutput)) {
-				currentOutput = tmpCurrentOutput;
-				bt.write(currentOutput);
+			if (currentInfo != null) {
+				String tmpCurrentOutput = currentInfo
+						.toLcdString(currentDisplayed);
+				if (!currentOutput.equals(tmpCurrentOutput)) {
+					currentOutput = tmpCurrentOutput;
+					bt.write(currentOutput);
+				}
 			}
-			
+
 			if (currentDisplaySpinner.getSelectedItemPosition() == 0) {
 				currentDisplayed++;
 				if (currentDisplayed > C.MAX_DISPLAY_CYCLE) {
 					currentDisplayed = 0;
 				}
 			}
-			
+
 			cycleValues();
 		}
 	};
