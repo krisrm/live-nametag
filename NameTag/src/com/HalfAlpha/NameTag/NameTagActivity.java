@@ -24,6 +24,8 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,6 +81,9 @@ public class NameTagActivity extends Activity {
 	private int currentDisplayed = 0;
 	private String currentOutput = "";
 	private Spinner currentDisplaySpinner;
+	private SeekBar brightnessSeekbar;
+	private int currentBrightness = 200;
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -93,7 +98,8 @@ public class NameTagActivity extends Activity {
 		cycle = (EditText) findViewById(R.id.cycleInterval);
 		mainScrollView = (ScrollView) findViewById(R.id.mainScroll);
 		currentDisplaySpinner = (Spinner) findViewById(R.id.showStatistic);
-
+		brightnessSeekbar = (SeekBar) findViewById(R.id.brightnessBar);
+		
 		bt = new BluetoothSerialService(this, h);
 
 		setupBT();
@@ -142,6 +148,32 @@ public class NameTagActivity extends Activity {
 					public void onNothingSelected(AdapterView<?> arg0) {
 					}
 				});
+		brightnessSeekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+			@Override
+			public void onProgressChanged(SeekBar seekbar, int progress, boolean fromUser) {
+				// TODO Auto-generated method stub
+				//here is where we need the brightness to change
+				if (fromUser){
+					currentBrightness = progress + 100;
+				}
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			
+			
+		});
 		autoRefreshInterval.setEnabled(autoRefresh.isChecked());
 		autoRefresh.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
