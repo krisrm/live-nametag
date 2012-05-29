@@ -111,38 +111,38 @@ public class GDGTInfo {
 		
 		if (display == 1){
 			int len = 27 - name.length();
-			output.concat("User:");
+			output += "User:";
 			for (; len > 0; len--){
-				output.concat(" ");
+				output += " ";
 			}
-			output.concat(name);
+			output += name;
 		}
 		if (display == 2){
 			String RPstring = Integer.toString(RP);
 			int len = 29 - RPstring.length();
 			output += "RP:";
 			for (; len > 0; len--){
-				output.concat(" ");
+				output += " ";
 			}
-			output.concat(RPstring);
+			output += RPstring;
 		}
 		if (display == 3){
 			String FollowersString = Integer.toString(followers);
 			int len = 22 - FollowersString.length();
-			output.concat("Followers:");
+			output += "Followers:";
 			for (; len > 0; len--){
-				output.concat(" ");
+				output +=" ";
 			}
-			output.concat(FollowersString);
+			output += FollowersString;
 		}
 		if (display == 4){
 			String FollowingString = Integer.toString(following);
 			int len = 22 - FollowingString.length();
-			output.concat("Following:");
+			output += "Following:";
 			for (; len > 0; len--){
-				output.concat(" ");
+				output+= " ";
 			}
-			output.concat(FollowingString);
+			output += FollowingString;
 		}
 		
 		Log.d(T,"'"+output+"'");
