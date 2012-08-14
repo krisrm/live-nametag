@@ -112,7 +112,7 @@ public class NameTag {
 	}
 	
 	public void printMessage(String message){
-		bt.write(">"+message+">");
+		bt.write("<"+message+">");
 	}
 	
 	public void setBrightness(int currentBrightness){

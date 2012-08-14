@@ -201,6 +201,7 @@ public class NameTagActivity extends Activity {
 						.toLcdString(currentDisplayed);
 				if (!currentOutput.equals(tmpCurrentOutput)) {
 					currentOutput = tmpCurrentOutput;
+					device.clearDisplay();
 					device.printMessage(currentOutput);
 				}
 			}

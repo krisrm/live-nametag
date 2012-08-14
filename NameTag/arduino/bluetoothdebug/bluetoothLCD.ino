@@ -39,25 +39,21 @@ void setup()
 
 void loop() 
 { 
-  
+  analogWrite(BR, brightness);
   if (countdown > 0){
   countdown --;
   return;
   }
-  analogWrite(BR, brightness);
+  
   if(Serial1.available()){//check if there's any data sent from the remote bluetooth shield
     recvChar = Serial1.read();
-    
+    Serial.print(recvChar);
     
     if (command == true){
       if (recvChar == 'c'){
         clearLCD();
         command = false;
-        return;
-      }
-      if (recvChar == '*'){
-        printLCD('*');
-        command= false; 
+        Serial.print('\n');
         return;
       }
       if (recvChar =='e'){
@@ -66,7 +62,8 @@ void loop()
         Serial.println(brightness);
         commandPos = 0;
         commandBuff = "000";
-        command= false; 
+        command= false;
+        Serial.print('\n');
         return;
       }
 
@@ -85,17 +82,18 @@ void loop()
       return;
     } else if (recvChar == '>'){
       message = !message;
+      Serial.print('\n');
       return;
     } else if (message) {
       printLCD(recvChar);
       if (cursorPos > MAX_CHAR){
         clearLCD();
-        printLCD(recvChar);
+        //printLCD(recvChar);
       }
     }
     command = false;
     
-    //Serial.print(recvChar);
+   
     digitalWrite(RXLED, HIGH);   // set the LED on
     rxcountdown = 100;
   }
