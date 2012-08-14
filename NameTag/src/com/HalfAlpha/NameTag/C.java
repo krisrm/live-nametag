@@ -1,8 +1,12 @@
 package com.HalfAlpha.NameTag;
 
-import java.util.UUID;
 
 public class C {
+	
+	//public static final String URL = "http://talbot.cs.ualberta.ca:8080/GDGTInfo/info?u=";
+	public static final String URL = "http://www.travisdilts.com/crawler.php?user=";
+
+	
 	public static final String T = "NAMETAG";
 	
 	public static final int SEC_LENGTH_MS = 1000;

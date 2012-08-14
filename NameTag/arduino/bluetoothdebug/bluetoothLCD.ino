@@ -1,49 +1,37 @@
 
-
-#include <SoftwareSerial.h> //Software Serial Port
 #include <LiquidCrystal.h>
-
-
 
 #define NAME "LiveNameTag"
 #define MAX_CHAR 32
 #define ROW 16
 #define COL 2
 
-#define RxD 0
-#define TxD 1
-
-//#define RxD 2
-//#define TxD 3
-
 #define RXLED 17 
-
+#define BR 3 //brightness, needs PWM
 
 #define DEBUG_ENABLED 1
 
-SoftwareSerial blueToothSerial(RxD,TxD);
-int countdown = 5000;
+int countdown = 100;
+int rxcountdown = 0;
 int cursorPos;
 char recvChar;
 char* commandBuff="000";
 int commandPos = 0;
 boolean command;
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
+boolean message;
+LiquidCrystal lcd(9, 8, 6, 5, 4, 2);
 int brightness = 255;
 
 void setup() 
 { 
  
   Serial.begin(9600*2);
-  pinMode(RxD, INPUT);
-  pinMode(TxD, OUTPUT);
   
   pinMode(RXLED, OUTPUT); 
   delay(5000);
   Serial.println("Setting up bluetooth");
   setupBlueToothConnection();
-  pinMode(5,OUTPUT);
+  pinMode(BR,OUTPUT);
   lcd.begin(ROW, COL);
   delay(1000);
   clearLCD();
@@ -56,11 +44,10 @@ void loop()
   countdown --;
   return;
   }
-  analogWrite(5, brightness);
-  Serial.println(blueToothSerial.read());
-  if(blueToothSerial.available()){//check if there's any data sent from the remote bluetooth shield
-    recvChar = blueToothSerial.read();
-    digitalWrite(RXLED, HIGH);   // set the LED on
+  analogWrite(BR, brightness);
+  if(Serial1.available()){//check if there's any data sent from the remote bluetooth shield
+    recvChar = Serial1.read();
+    
     
     if (command == true){
       if (recvChar == 'c'){
@@ -96,41 +83,52 @@ void loop()
     if (recvChar == '*'){
       command = true;
       return;
-    } 
-    else {
-      command = false;
+    } else if (recvChar == '>'){
+      message = !message;
+      return;
+    } else if (message) {
       printLCD(recvChar);
+      if (cursorPos > MAX_CHAR){
+        clearLCD();
+        printLCD(recvChar);
+      }
     }
-
-    if (cursorPos > MAX_CHAR){
-      clearLCD();
-      printLCD(recvChar);
-    }
-    Serial.print(recvChar);
-  } else {
+    command = false;
+    
+    //Serial.print(recvChar);
+    digitalWrite(RXLED, HIGH);   // set the LED on
+    rxcountdown = 100;
+  }
+  if (rxcountdown <= 0){
     digitalWrite(RXLED, LOW);    // set the LED off
+    rxcountdown = -1;
+  } else {
+    digitalWrite(RXLED, HIGH);   // set the LED on
+    rxcountdown--;
   }
   if(Serial.available()){//check if there's any data sent from the local serial terminal, you can add the other applications here
     recvChar = Serial.read();
-    blueToothSerial.print(recvChar);
+    Serial1.print(recvChar);
   }
 
 } 
 
 void setupBlueToothConnection()
 {
-  blueToothSerial.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
-  blueToothSerial.print("\r\n+STWMOD=0\r\n"); //set the bluetooth work in slave mode
-  blueToothSerial.print("\r\n+STNA="); //set the bluetooth name
-  blueToothSerial.print(NAME);
-  blueToothSerial.print("\r\n");
-  blueToothSerial.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
-  blueToothSerial.print("\r\n+STAUTO=0\r\n"); // Auto-connection should be forbidden here
+  TXLED1;
+  Serial1.begin(38400); //Set BluetoothBee BaudRate to default baud rate 38400
+  Serial1.print("\r\n+STWMOD=0\r\n"); //set the bluetooth work in slave mode
+  Serial1.print("\r\n+STNA="); //set the bluetooth name
+  Serial1.print(NAME);
+  Serial1.print("\r\n");
+  Serial1.print("\r\n+STOAUT=1\r\n"); // Permit Paired device to connect me
+  Serial1.print("\r\n+STAUTO=0\r\n"); // Auto-connection should be forbidden here
   delay(2000); // This delay is required.
-  blueToothSerial.print("\r\n+INQ=1\r\n"); //make the slave bluetooth inquirable 
+  Serial1.print("\r\n+INQ=1\r\n"); //make the slave bluetooth inquirable 
   Serial.println("The slave bluetooth is inquirable!");
   delay(2000); // This delay is required.
-  blueToothSerial.flush();
+  Serial1.flush();
+  TXLED0;
 }
 
 void printLCD(char c){

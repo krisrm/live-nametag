@@ -32,44 +32,7 @@ import android.widget.Toast;
 
 public class NameTagActivity extends Activity {
 
-	private Handler h = new Handler(new Callback() {
-
-		@Override
-		public boolean handleMessage(Message msg) {
-			Log.v(C.T, msg.toString());
-			switch (msg.what) {
-			case C.MESSAGE_STATE_CHANGE:
-				switch (msg.arg1) {
-				case BluetoothSerialService.STATE_CONNECTED:
-					Log.d(C.T, "Connected");
-					break;
-
-				case BluetoothSerialService.STATE_CONNECTING:
-					Log.d(C.T, "Connecting");
-
-					break;
-
-				case BluetoothSerialService.STATE_LISTEN:
-				case BluetoothSerialService.STATE_NONE:
-					Log.d(C.T, "Listen/None");
-
-					break;
-				}
-				break;
-			case C.MESSAGE_DEVICE_NAME:
-				Log.d(C.T, "Got Name");
-				btConnected();
-				break;
-			case C.MESSAGE_TOAST:
-				Toast.makeText(NameTagActivity.this,
-						msg.getData().getString(C.TOAST), Toast.LENGTH_LONG);
-				Log.d(C.T, msg.getData().getString(C.TOAST));
-				break;
-
-			}
-			return false;
-		}
-	});
+	
 	protected GDGTInfo currentInfo;
 	private EditText cycle;
 	private EditText autoRefreshInterval;
@@ -77,11 +40,13 @@ public class NameTagActivity extends Activity {
 	private EditText gdgtUser;
 	private CheckBox autoRefresh;
 	private ScrollView mainScrollView;
-	private BluetoothSerialService bt;
-	private int currentDisplayed = 0;
+	private int currentDisplayed = 4;
 	private String currentOutput = "";
 	private Spinner currentDisplaySpinner;
 	private SeekBar brightnessSeekbar;
+	private EditText customMessage;
+	private NameTag device;
+	private Handler h = new Handler();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -93,24 +58,50 @@ public class NameTagActivity extends Activity {
 		final Button refreshButton = (Button) findViewById(R.id.refreshButton);
 		autoRefresh = (CheckBox) findViewById(R.id.autoRefresh);
 		autoRefreshInterval = (EditText) findViewById(R.id.autoRefreshInterval);
+		customMessage = (EditText) findViewById(R.id.customMessage);
 		cycle = (EditText) findViewById(R.id.cycleInterval);
 		mainScrollView = (ScrollView) findViewById(R.id.mainScroll);
 		currentDisplaySpinner = (Spinner) findViewById(R.id.showStatistic);
 		brightnessSeekbar = (SeekBar) findViewById(R.id.brightnessBar);
-
-		bt = new BluetoothSerialService(this, h);
-
-		setupBT();
+		
+		device = NameTag.get(this);
 
 		refreshButton.setOnClickListener(new Button.OnClickListener() {
 			public void onClick(View v) {
-				if (bt == null
-						|| bt.getState() != BluetoothSerialService.STATE_CONNECTED) {
-					setupBT();
-				}
+				
+				device.connect();
+				h.removeCallbacks(dataRefreshed);
+				h.removeCallbacks(displayValues);
+				h.removeCallbacks(refreshData);
 				refreshData.run();
 			}
 		});
+		
+		customMessage.addTextChangedListener(new TextWatcher() {
+			
+			
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+				
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+					int arg3) {
+				
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {
+				Log.d(C.T, s.toString());
+				if ("".equals(s.toString())){
+					device.clearDisplay();
+				}
+				h.post(displayValues);
+				
+			}
+		});
+		
 		cycle.addTextChangedListener(new TextWatcher() {
 
 			@Override
@@ -154,25 +145,18 @@ public class NameTagActivity extends Activity {
 							int progress, boolean fromUser) {
 						if (fromUser) {
 							int currentBrightness = (int) Math.floor(progress*2 + 55);
-							
 							Log.d(C.T,"'"+currentBrightness);
-							if (currentBrightness < 100){								
-								bt.write("*0"+currentBrightness+"e");
-							} else {
-								bt.write("*"+currentBrightness+"e");
-							}
+							device.setBrightness(currentBrightness);
 						}
 					}
 
 					@Override
 					public void onStartTrackingTouch(SeekBar arg0) {
-						// TODO Auto-generated method stub
 
 					}
 
 					@Override
 					public void onStopTrackingTouch(SeekBar arg0) {
-						// TODO Auto-generated method stub
 
 					}
 
@@ -194,49 +178,30 @@ public class NameTagActivity extends Activity {
 
 	}
 
-	private void setupBT() {
-		BluetoothAdapter mBluetoothAdapter = BluetoothAdapter
-				.getDefaultAdapter();
-		BluetoothDevice mBluetoothDevice = null;
-		if (!mBluetoothAdapter.isEnabled()) {
-			Intent enableBtIntent = new Intent(
-					BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, C.REQUEST_ENABLE_BT);
-		}
 
-		Set<BluetoothDevice> pairedDevices = mBluetoothAdapter
-				.getBondedDevices();
-		if (pairedDevices.size() > 0) {
-			for (BluetoothDevice device : pairedDevices) {
-				if (C.DEVICE_NAME.equals(device.getName())) {
-					mBluetoothDevice = device;
-				}
-			}
-		}
-		if (mBluetoothDevice == null) {
-			showDialog(C.ERR_BT);
-			return;
-		}
-
-		bt.connect(mBluetoothDevice);
-
-	}
-
-	protected void btConnected() {
-		bt.write("*c");
-		cycleValues();
-	}
+//	protected void btConnected() {
+//		bt.write("*c");
+//		cycleValues();
+//	}
 
 	private Runnable displayValues = new Runnable() {
 
 		@Override
 		public void run() {
+			String custom = customMessage.getText().toString();
+			Log.d(C.T, "displaying");
+			if (!"".equals(custom)){
+				device.clearDisplay();
+				device.printMessage(custom);
+				return;
+			}
+			
 			if (currentInfo != null) {
 				String tmpCurrentOutput = currentInfo
 						.toLcdString(currentDisplayed);
 				if (!currentOutput.equals(tmpCurrentOutput)) {
 					currentOutput = tmpCurrentOutput;
-					bt.write(currentOutput);
+					device.printMessage(currentOutput);
 				}
 			}
 
@@ -261,16 +226,18 @@ public class NameTagActivity extends Activity {
 					gdgtUser.setText("tgd");
 				}
 				if (currentInfo == null || !currentInfo.username.equals(user)) {
-					currentInfo = new GDGTInfo(user);
+					currentInfo = new GDGTInfo(user, NameTagActivity.this);
 				}
 				mainScrollView.scrollTo(0, mainScrollView.getHeight());
 				currentInfo.fillFromNetwork(dataRefreshed);
+				device.clearDisplay();
 			} catch (Exception e) {
 				Log.e(C.T, e.toString());
 				showDialog(C.ERR_REFRESH);
 			}
 		}
 	};
+	
 	private Runnable dataRefreshed = new Runnable() {
 		@Override
 		public void run() {
@@ -305,6 +272,7 @@ public class NameTagActivity extends Activity {
 			time = 0;
 		}
 		if (time > 0) {
+			h.removeCallbacks(displayValues);
 			h.postDelayed(displayValues, time * C.SEC_LENGTH_MS);
 		}
 	}
@@ -343,6 +311,11 @@ public class NameTagActivity extends Activity {
 				.setTitle("Unexpected Error");
 
 		return builder.create();
+	}
+
+	public void connected() {
+		device.clearDisplay();
+		h.post(displayValues);
 	}
 
 	// @Override

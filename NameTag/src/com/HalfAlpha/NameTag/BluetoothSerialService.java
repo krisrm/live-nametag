@@ -371,5 +371,9 @@ public class BluetoothSerialService {
         }
     }
 
+	public void disconnect() {
+		stop();
+	}
+
 	
 }

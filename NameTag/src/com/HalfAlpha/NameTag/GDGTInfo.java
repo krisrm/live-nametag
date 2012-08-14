@@ -1,16 +1,27 @@
 package com.HalfAlpha.NameTag;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.io.StreamCorruptedException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class GDGTInfo {
+public class GDGTInfo implements Serializable{
 
+	private static final long serialVersionUID = 3624605201239664437L;
+	
 	protected static final String T = "NAMETAG";
 	public String username;
 	public String name;
@@ -22,14 +33,18 @@ public class GDGTInfo {
 	public int questions;
 	public int reviews;
 	public Exception error;
+	transient private Activity activity;
+
+	private boolean cached;
 	private class GetInfoTask extends AsyncTask<Void, Void, Void> {
+		private String FILE_PREFIX= "GDGT_";
 
 		@Override
 		protected Void doInBackground(Void... params) {
 
 			try {
 				
-				String userURL = "http://talbot.cs.ualberta.ca:8080/GDGTInfo/info?u="
+				String userURL = C.URL
 						+ username;
 				Log.d(T,"'"+userURL+"'");
 				URL url = new URL(
@@ -47,25 +62,77 @@ public class GDGTInfo {
 					comments = Integer.parseInt(rd.readLine());
 					questions = Integer.parseInt(rd.readLine());
 					reviews = Integer.parseInt(rd.readLine());
+					saveToFile();
 				} catch (Exception e) {
 					Log.e(T, "Failed to parse user data");
 					error = e;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
+				Log.e(C.T,"no network");
+				readFromFile();
 			}
 			return null;
 		}
 
+		private void saveToFile() {
+			try {
+				FileOutputStream os = activity.openFileOutput(FILE_PREFIX+username, Context.MODE_PRIVATE);
+				ObjectOutputStream oos= new ObjectOutputStream(os);
+				oos.writeObject(GDGTInfo.this);
+				oos.close();
+				os.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				//can't save the info
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void readFromFile() {
+			try {
+				FileInputStream is = activity.openFileInput(FILE_PREFIX+username);
+				ObjectInputStream ois = new ObjectInputStream(is);
+				GDGTInfo.this.fillFromObject((GDGTInfo) ois.readObject());
+				ois.close();
+				is.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (StreamCorruptedException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			
+		}
+
 	}
 
-	public GDGTInfo(String username) {
+	public GDGTInfo(){}
+	
+	public GDGTInfo(String username, Activity activity) {
 		this.username = username.trim();
+		this.activity = activity;
 		if (this.username.isEmpty()){
 			this.username= "tgd";
 		}
 	}
 
+	public void fillFromObject(final GDGTInfo o){
+		this.name = o.name;
+		this.RP = o.RP;
+		this.reviews = o.reviews;
+		this.followers = o.followers;
+		this.following = o.following;
+		this.questions = o.questions;
+		this.comments = o.comments;
+		this.answers = o.answers;
+		this.cached = true;
+	}
+	
 	public void fillFromNetwork(final Runnable finished) {
 		error = null;
 		new GetInfoTask() {
@@ -88,7 +155,9 @@ public class GDGTInfo {
 		r +="Questions: " + questions+ "\n";
 		r +="Comments: " + comments+ "\n";
 		r +="Reviews: " + reviews+ "\n";
-		
+		if (cached){
+			r +="(data from cache)\n";
+		}
 		return r;
 	}
 	
@@ -101,7 +170,7 @@ public class GDGTInfo {
 	 * 4 = following
 	 */
 	public String toLcdString(int display){
-		String output = new String();
+		String output = "";
 		
 		if (name == null || username == null)
 			return "";
