@@ -59,8 +59,8 @@ public class GDGTInfo implements Serializable{
 					followers = Integer.parseInt(rd.readLine());
 					following = Integer.parseInt(rd.readLine());
 					answers = Integer.parseInt(rd.readLine());
-					comments = Integer.parseInt(rd.readLine());
 					questions = Integer.parseInt(rd.readLine());
+					comments = Integer.parseInt(rd.readLine());
 					reviews = Integer.parseInt(rd.readLine());
 					saveToFile();
 				} catch (Exception e) {
